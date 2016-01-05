@@ -75,7 +75,7 @@ if (...) then
 			assert(Assert.isStrMap(map), 'Wrong argument #1. Not a valid string map')
 			map = Utils.strToMap(map)
 		end
-    assert(Assert.isMap(map),('Bad argument #1. Not a valid map'))
+  
     assert(Assert.isBool(cacheNodeAtRuntime) or Assert.isNil(cacheNodeAtRuntime),
       ('Bad argument #2. Expected \'boolean\', got %s.'):format(type(cacheNodeAtRuntime)))
     if cacheNodeAtRuntime then

@@ -19,6 +19,23 @@ if (...) then
   local Node = {}
   Node.__index = Node
 
+  local function new(x, y, z)
+	local v = {}
+	v._x, v._y, v._clearance  = x, y, {}
+	return setmetatable(v, Node)
+  end
+
+-- Do the check to see if JIT is enabled. If so use the optimized FFI structs.
+local status, ffi
+  if type(jit) == "table" and jit.status() then
+	status, ffi = pcall(require, "ffi")
+    if status then
+	  ffi.cdef "typedef struct node { float _x, _y, _g, _h, _f; bool _opened, _closed; struct node* _parent;} node"
+      new = ffi.typeof("node")
+    end
+  end
+
+
   --- Inits a new `node`
   -- @class function
   -- @tparam int x the x-coordinate of the node on the collision map
@@ -26,7 +43,7 @@ if (...) then
   -- @treturn node a new `node`
 	-- @usage local node = Node(3,4)
   function Node:new(x,y)
-    return setmetatable({_x = x, _y = y, _clearance = {}}, Node)
+    return new(x,y)
   end
 
   -- Enables the use of operator '<' to compare nodes.
@@ -60,9 +77,6 @@ if (...) then
 	-- @usage
 	--  -- Assuming walkable was 0	
 	-- local clearance = node:getClearance(0)		
-	function Node:getClearance(walkable)
-		return self._clearance[walkable]
-	end
 	
   --- Removes the clearance value for a given walkable.
   -- @class function
@@ -71,10 +85,6 @@ if (...) then
 	-- @usage
 	--  -- Assuming walkable is defined	
 	-- node:removeClearance(walkable)	
-	function Node:removeClearance(walkable)
-		self._clearance[walkable] = nil
-		return self
-	end
 	
 	--- Clears temporary cached attributes of a `node`.
 	-- Deletes the attributes cached within a given node after a pathfinding call.
@@ -89,6 +99,9 @@ if (...) then
 		self._opened, self._closed, self._parent = nil, nil, nil
 		return self
 	end
+	if status then
+		ffi.metatype(new, Node)
+    end
 	
   return setmetatable(Node,
 		{__call = function(self,...) 

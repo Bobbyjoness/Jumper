@@ -67,12 +67,12 @@ if (...) then
   local function arrayToNodes(map)
     local min_x, max_x
     local min_y, max_y
-    local nodes = {}
-      for y in pairs(map) do
+    local nodes = ffi.typeof("node[?][?]",#map,#map[1])
+      for y in ipairs(map) do
         min_y = not min_y and y or (y<min_y and y or min_y)
         max_y = not max_y and y or (y>max_y and y or max_y)
-        nodes[y] = {}
-        for x in pairs(map[y]) do
+        if type(nodes) == "table" then nodes[y] = {} end
+        for x in ipairs(map[y]) do
           min_x = not min_x and x or (x<min_x and x or min_x)
           max_x = not max_x and x or (x>max_x and x or max_x)
           nodes[y][x] = Node:new(x,y)
@@ -114,7 +114,7 @@ if (...) then
     local path = Path:new()
     path._grid = finder._grid
     while true do
-      if node._parent then
+      if not (node._parent == nil) then
         t_insert(path._nodes,1,node)
         node = node._parent
       else
